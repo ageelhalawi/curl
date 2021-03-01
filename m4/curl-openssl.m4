@@ -276,3 +276,29 @@ AC_DEFUN([CURL_CHECK_OPENSSL_API], [
     AC_MSG_WARN([$tst_warns])
   fi
 ])
+
+dnl CURL_CHECK_OPENSSL_THREADSAFE
+dnl OpenSSL >= 1.1.0 and BoringSSL have thread-safe init
+dnl -----------------------------------------------------
+
+AC_DEFUN([CURL_CHECK_OPENSSL_THREADSAFE], [
+  AC_MSG_CHECKING([for thread-safe OpenSSL flavor])
+  AC_COMPILE_IFELSE([
+    AC_LANG_PROGRAM([[
+      #include <openssl/opensslv.h>
+    ]],[[
+      #if ((OPENSSL_VERSION_NUMBER < 0x10100000L) || \
+        defined(LIBRESSL_VERSION_NUMBER)) && \
+        !defined(OPENSSL_IS_BORINGSSL)
+      #error "not thread-safe"
+      #endif
+    ]])
+  ],[
+    AC_MSG_RESULT([yes])
+    AC_DEFINE_UNQUOTED(HAVE_OPENSSL_THREADSAFE, 1,
+      [Define to 1 if using a thread-safe OpenSSL flavor])
+  ],[
+    AC_MSG_RESULT([no])
+    curl_ssl_threadsafe="no"
+ ])
+])
